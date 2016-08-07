@@ -39,7 +39,7 @@
 
 (defn create-generation [live-cells]
   (reduce
-    #(set (concat %1 (neighbouring-cells %2 live-cells)))
+    (fn [result live-cell] (concat result (neighbouring-cells live-cell live-cells)))
     #{}
     live-cells
     ))
