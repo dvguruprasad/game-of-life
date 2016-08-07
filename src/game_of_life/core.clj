@@ -9,6 +9,12 @@
 (defn- is-alive? [cell]
   (= :alive (:status cell)))
 
+(defn- die [cell]
+  {:point (:point cell) :status :dead})
+
+(defn- live [cell]
+  {:point (:point cell) :status :alive})
+
 (defn- live-neighbour-count [neighbours]
   (count (filter is-alive? neighbours)))
 
@@ -18,16 +24,16 @@
 (defn- cell-status [point live-cells]
   (if (is-alive-at? point live-cells) :alive :dead))
 
-(defn- neighbouring-cell [surrounding-point live-cells]
-  {:point surrounding-point
-   :status (cell-status surrounding-point live-cells)})
+(defn- neighbouring-cell [neighbouring-point live-cells]
+  {:point neighbouring-point
+   :status (cell-status neighbouring-point live-cells)})
 
 (defn- neighbouring-cells [cell live-cells]
   (set (let [point (:point cell)
              deltas (range -1 2)]
          (for [x deltas y deltas :when (not= 0 x y)] 
-           (let [surrounding-point (map + point [x y])]
-             (neighbouring-cell surrounding-point live-cells))
+           (let [neighbouring-point (map + point [x y])]
+             (neighbouring-cell neighbouring-point live-cells))
            ))
        ))
 
@@ -41,13 +47,11 @@
 (defn next-generation-cell [cell live-cells]
   (let [neighbours (neighbouring-cells cell live-cells)
         live-neighbour-count (live-neighbour-count neighbours)]
-    (if (or (< live-neighbour-count 2) (> live-neighbour-count 3))
-      {:point (:point cell) :status :dead}
-      (if (= live-neighbour-count 3)
-        {:point (:point cell) :status :alive}
-        cell
-        )
-      )))
+    (cond
+      (or (< live-neighbour-count 2) (> live-neighbour-count 3)) (die cell)
+      (= live-neighbour-count 3) (live cell)
+      :else cell)
+    ))
 
 (defn next-generation [points]
   (let [live-cells (to-cells points :alive)
